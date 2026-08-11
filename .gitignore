@@ -1,0 +1,8 @@
+# Cached downloads - the Darkglass installer itself and third-party
+# tooling under cache/tools/ (appimagetool, type2-runtime), both
+# regenerable by build.sh (which downloads them if missing). Never
+# ours to distribute or commit.
+/cache/
+
+# Build artifacts
+*.AppImage

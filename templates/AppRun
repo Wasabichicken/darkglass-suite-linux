@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# AppImage entry point. --no-sandbox is needed because Electron's sandbox
+# helper requires a setuid binary this AppImage doesn't ship.
+set -euo pipefail
+
+HERE="$(dirname "$(readlink -f "${0}")")"
+ELECTRON="$HERE/usr/node_modules/electron/dist/electron"
+APP="$HERE/usr"
+
+exec "$ELECTRON" "$APP" --no-sandbox "$@"

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Darkglass Suite
+Comment=Unofficial Linux build of Darkglass Suite.
+Exec=AppRun --no-sandbox %U
+Icon=darkglass-suite
+Categories=Audio;AudioVideo;
+Terminal=false
