@@ -51,6 +51,22 @@ as a ZIP file. Then, from the (unpacked) project directory:
 $ ./build.sh
 ```
 
+By default, this fetches whatever Darkglass currently serves as the
+latest installer. As far as I know, however, Darkglass's download
+endpoint only ever serves the latest version, so if you need to
+rebuild an older (but still supported, see [patches/](patches/))
+version, point the script at a previously-downloaded installer instead
+with `--installer`:
+
+```sh
+$ ./build.sh --installer "cache/Darkglass Suite-6.8.0-rc10-x64.exe"
+```
+
+This skips the download entirely; the version is still determined from
+the installer's filename and validated against `patches/` as usual, so
+this can't be used to sneak past the version check. An output path can
+still be given as an extra, final argument.
+
 ## Runtime requirements
 
 For Darkglass Anagram, the Darkglass Suite communicates with the

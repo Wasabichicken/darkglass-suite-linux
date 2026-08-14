@@ -2,11 +2,34 @@
 # Builds a native-Linux Darkglass Suite AppImage from Darkglass's own
 # published Windows installer.
 #
-# Usage: ./build.sh [output-path]
-#   output-path defaults to ./Darkglass-Suite-<version>-x86_64.AppImage,
-#   relative to the directory this script is invoked FROM (not this
-#   script's own location).
+# Usage: ./build.sh [--installer path-to-exe] [output-path]
+#   --installer   use this installer file instead of fetching Darkglass's
+#                 "latest" endpoint - e.g. an older installer previously
+#                 downloaded into cache/. Darkglass's API only ever serves
+#                 the current release, so this is the only way to rebuild
+#                 an older (still-supported) version once they've moved on.
+#                 The version is still validated against patches/ as usual.
+#   output-path   defaults to ./Darkglass-Suite-<version>-x86_64.AppImage,
+#                 relative to the directory this script is invoked FROM
+#                 (not this script's own location).
 set -euo pipefail
+
+INSTALLER_OVERRIDE=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --installer)
+      INSTALLER_OVERRIDE="$2"
+      shift 2
+      ;;
+    --installer=*)
+      INSTALLER_OVERRIDE="${1#--installer=}"
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
 ORIGINAL_PWD="$(pwd)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -53,22 +76,31 @@ if [ ! -f "$TYPE2_RUNTIME" ]; then
   chmod +x "$TYPE2_RUNTIME"
 fi
 
-# Step 1+2: figure out the latest version and check it's one we
-# support, before downloading anything
+# Step 1+2: figure out which version we're building and check it's one
+# we support, before downloading anything
 
-echo "==> Checking latest Darkglass Suite version..."
-HEADERS="$(curl -sI -L "$DOWNLOAD_URL")"
-FILENAME="$(echo "$HEADERS" | grep -i '^content-disposition:' | sed -E 's/.*filename="([^"]+)".*/\1/' | tr -d '\r')"
+if [ -n "$INSTALLER_OVERRIDE" ]; then
+  if [ ! -f "$INSTALLER_OVERRIDE" ]; then
+    echo "error: --installer file not found: $INSTALLER_OVERRIDE" >&2
+    exit 1
+  fi
+  echo "==> Using provided installer: $INSTALLER_OVERRIDE"
+  FILENAME="$(basename "$INSTALLER_OVERRIDE")"
+else
+  echo "==> Checking latest Darkglass Suite version..."
+  HEADERS="$(curl -sI -L "$DOWNLOAD_URL")"
+  FILENAME="$(echo "$HEADERS" | grep -i '^content-disposition:' | sed -E 's/.*filename="([^"]+)".*/\1/' | tr -d '\r')"
 
-if [ -z "$FILENAME" ]; then
-  echo "error: could not determine the installer filename from the download endpoint's response." >&2
-  echo "       the endpoint or its response shape may have changed:" >&2
-  echo "       $DOWNLOAD_URL" >&2
-  exit 1
+  if [ -z "$FILENAME" ]; then
+    echo "error: could not determine the installer filename from the download endpoint's response." >&2
+    echo "       the endpoint or its response shape may have changed:" >&2
+    echo "       $DOWNLOAD_URL" >&2
+    exit 1
+  fi
 fi
 
 VERSION="$(echo "$FILENAME" | sed -E 's/^Darkglass Suite-(.+)-x64\.exe$/\1/')"
-echo "    latest version: $VERSION (installer: $FILENAME)"
+echo "    version: $VERSION (installer: $FILENAME)"
 
 ELECTRON_VERSION="$(electron_version_for "$VERSION")"
 PATCH_MAIN="$PATCHES_DIR/main.js.$VERSION.patch"
@@ -91,18 +123,22 @@ if [ -z "$ELECTRON_VERSION" ] || [ ! -f "$PATCH_MAIN" ] || [ ! -f "$PATCH_RENDER
 fi
 echo "    supported - pinned Electron version: $ELECTRON_VERSION"
 
-# Step 3: download (reusing an existing copy if present) and extract
-# the NSIS installer directly with 7z.
+# Step 3: obtain the installer (reusing an existing download, or the
+# --installer override, if present) and extract it directly with 7z.
 
 mkdir -p "$DOWNLOAD_DIR"
-INSTALLER_PATH="$DOWNLOAD_DIR/$FILENAME"
 
-if [ -f "$INSTALLER_PATH" ]; then
-  echo "==> Reusing already-downloaded installer at $INSTALLER_PATH"
+if [ -n "$INSTALLER_OVERRIDE" ]; then
+  INSTALLER_PATH="$INSTALLER_OVERRIDE"
 else
-  echo "==> Downloading $FILENAME to $DOWNLOAD_DIR ..."
-  curl -L -o "$INSTALLER_PATH.partial" "$DOWNLOAD_URL"
-  mv "$INSTALLER_PATH.partial" "$INSTALLER_PATH"
+  INSTALLER_PATH="$DOWNLOAD_DIR/$FILENAME"
+  if [ -f "$INSTALLER_PATH" ]; then
+    echo "==> Reusing already-downloaded installer at $INSTALLER_PATH"
+  else
+    echo "==> Downloading $FILENAME to $DOWNLOAD_DIR ..."
+    curl -L -o "$INSTALLER_PATH.partial" "$DOWNLOAD_URL"
+    mv "$INSTALLER_PATH.partial" "$INSTALLER_PATH"
+  fi
 fi
 
 WORK="$(mktemp -d)"
