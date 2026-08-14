@@ -104,7 +104,7 @@ if your Darkglass device breaks as a consequence of using this
 software.
 
 That said, the build script has been found to work without known
-issues for **version 6.8.0-rc10** of the Darkglass Suite:
+issues for **version 6.8.1-rc1** of the Darkglass Suite:
 
 * Firmware upgrade,
 * Marketplace block download,

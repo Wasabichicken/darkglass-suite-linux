@@ -26,7 +26,7 @@ TYPE2_RUNTIME="$TOOLS_DIR/type2-runtime-$TYPE2_RUNTIME_VERSION-x86_64"
 
 electron_version_for() {
   case "$1" in
-    6.8.0-rc10) echo "35.7.5" ;;
+    6.8.0-rc10|6.8.1-rc1) echo "35.7.5" ;;
     *) echo "" ;;
   esac
 }
