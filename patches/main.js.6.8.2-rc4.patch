@@ -1,0 +1,13 @@
+--- a/main.js.pretty
++++ b/main.js.pretty
+@@ -140582,9 +140582,7 @@
+                           for (;;)
+                             switch (e.n) {
+                               case 0:
+-                                try {
+-                                  ko || lc.autoUpdater.checkForUpdates();
+-                                } catch (e) {}
++                              // Patched: never invoke Darkglass's Windows-only auto-updater on Linux.
+                               case 1:
+                                 return e.a(2);
+                             }
