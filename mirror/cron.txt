@@ -1,0 +1,3 @@
+# Crontab entry for mirror.sh
+
+17 3 * * * flock -n /path/to/darkglass-suite-linux/mirror/mirror.lock /path/to/darkglass-suite-linux/mirror/mirror.sh >> /path/to/darkglass-suite-linux/mirror/mirror.log 2>&1
