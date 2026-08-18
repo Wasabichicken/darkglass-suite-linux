@@ -18,13 +18,26 @@ Only with Darkglass Anagram, no other Darkglass devices.
 
 In order, the script:
 
-1. Downloads the most recent version of the Darkglass Suite installer
-   for Windows and unpacks it,
-2. Checks if the downloaded version is supported, otherwise aborts. If
-   this happens, please file an issue.
+1. Downloads the newest version of the Darkglass Suite installer for
+   Windows that this script currently has patches for (from a mirror,
+   not from Darkglass directly - see below) and unpacks it,
+2. Double-checks that the downloaded version really is supported,
+   otherwise aborts. If this happens, please file an issue.
 3. Patches the C and JavaScript source (see [patches/](patches/)),
 4. Builds Darkglass' C module for serial communication,
 5. Repackages the Electron app as a runnable AppImage.
+
+### Why a mirror, and not Darkglass directly?
+
+To the best of my knowledge, Darkglass's own download endpoint only
+ever serves whichever version is currently latest. Fetching from it
+directly meant this script became unusable the moment Darkglass ships
+a version newer than whatever had last been patched here.
+
+Instead, `build.sh` fetches a specific, known-supported version by name
+from a small personal mirror that archives installers as new versions
+are released, so they're still around even after Darkglass moves on.
+See [mirror/](mirror/) if you'd like to run your own copy of it.
 
 ## Build requirements
 
@@ -51,12 +64,10 @@ as a ZIP file. Then, from the (unpacked) project directory:
 $ ./build.sh
 ```
 
-By default, this fetches whatever Darkglass currently serves as the
-latest installer. As far as I know, however, Darkglass's download
-endpoint only ever serves the latest version, so if you need to
-rebuild an older (but still supported, see [patches/](patches/))
-version, point the script at a previously-downloaded installer instead
-with `--installer`:
+By default, this fetches the newest supported version from the mirror
+(see above). If you'd rather use a specific installer you already have
+- an older version, or if the mirror is unreachable - point the script
+at it directly with `--installer`:
 
 ```sh
 $ ./build.sh --installer "cache/Darkglass Suite-6.8.0-rc10-x64.exe"
@@ -120,7 +131,7 @@ if your Darkglass device breaks as a consequence of using this
 software.
 
 That said, the build script has been found to work without known
-issues for **version 6.8.2-rc4** of the Darkglass Suite:
+issues for several versions of the Darkglass Suite:
 
 * Firmware upgrade,
 * Marketplace block download,

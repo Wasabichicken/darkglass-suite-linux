@@ -3,12 +3,10 @@
 # published Windows installer.
 #
 # Usage: ./build.sh [--installer path-to-exe] [output-path]
-#   --installer   use this installer file instead of fetching Darkglass's
-#                 "latest" endpoint - e.g. an older installer previously
-#                 downloaded into cache/. Darkglass's API only ever serves
-#                 the current release, so this is the only way to rebuild
-#                 an older (still-supported) version once they've moved on.
-#                 The version is still validated against patches/ as usual.
+#   --installer   use this installer file directly instead of fetching one -
+#                 e.g. an installer previously downloaded into cache/, or
+#                 one that isn't in the mirror at all. The version is still
+#                 validated against patches/ as usual.
 #   output-path   defaults to ./Darkglass-Suite-<version>-x86_64.AppImage,
 #                 relative to the directory this script is invoked FROM
 #                 (not this script's own location).
@@ -37,7 +35,12 @@ PATCHES_DIR="$SCRIPT_DIR/patches"
 TEMPLATES_DIR="$SCRIPT_DIR/templates"
 DOWNLOAD_DIR="$SCRIPT_DIR/cache"
 TOOLS_DIR="$DOWNLOAD_DIR/tools"
-DOWNLOAD_URL="https://api-v2.darkglass.com/product/software/download/latest?softwareId=1"
+# Darkglass's own "latest" endpoint only ever serves the current release, so
+# fetching from it directly means the script becomes unusable the moment
+# Darkglass ships a version newer than whatever we've last patched. Instead,
+# fetch LATEST_VERSION (below) by name from our own mirror (populated by
+# mirror/mirror.sh), which keeps installers around after Darkglass moves on.
+MIRROR_URL="https://www.accum.se/~ericj/darkglass-suite-linux/mirror/archive"
 
 PRETTIER_VERSION="3.4.2"
 NODE_GYP_VERSION="10"
@@ -53,6 +56,12 @@ electron_version_for() {
     *) echo "" ;;
   esac
 }
+
+# The newest version we have patches for - bump this alongside
+# electron_version_for() and patches/ whenever support for a new Darkglass
+# Suite version is added. Used to fetch that exact file from the mirror
+# (see MIRROR_URL below) without needing to ask it what it has.
+LATEST_VERSION="6.8.2-rc4"
 
 for cmd in curl 7z npx node gcc dos2unix; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "error: required command '$cmd' not found" >&2; exit 1; }
@@ -87,16 +96,9 @@ if [ -n "$INSTALLER_OVERRIDE" ]; then
   echo "==> Using provided installer: $INSTALLER_OVERRIDE"
   FILENAME="$(basename "$INSTALLER_OVERRIDE")"
 else
-  echo "==> Checking latest Darkglass Suite version..."
-  HEADERS="$(curl -sI -L "$DOWNLOAD_URL")"
-  FILENAME="$(echo "$HEADERS" | grep -i '^content-disposition:' | sed -E 's/.*filename="([^"]+)".*/\1/' | tr -d '\r')"
-
-  if [ -z "$FILENAME" ]; then
-    echo "error: could not determine the installer filename from the download endpoint's response." >&2
-    echo "       the endpoint or its response shape may have changed:" >&2
-    echo "       $DOWNLOAD_URL" >&2
-    exit 1
-  fi
+  FILENAME="Darkglass Suite-$LATEST_VERSION-x64.exe"
+  MIRROR_HREF="${FILENAME// /%20}"
+  echo "==> Newest supported version: $LATEST_VERSION"
 fi
 
 VERSION="$(echo "$FILENAME" | sed -E 's/^Darkglass Suite-(.+)-x64\.exe$/\1/')"
@@ -135,8 +137,14 @@ else
   if [ -f "$INSTALLER_PATH" ]; then
     echo "==> Reusing already-downloaded installer at $INSTALLER_PATH"
   else
-    echo "==> Downloading $FILENAME to $DOWNLOAD_DIR ..."
-    curl -L -o "$INSTALLER_PATH.partial" "$DOWNLOAD_URL"
+    echo "==> Downloading $FILENAME from mirror ..."
+    if ! curl -fL -o "$INSTALLER_PATH.partial" "$MIRROR_URL/$MIRROR_HREF"; then
+      rm -f "$INSTALLER_PATH.partial"
+      echo "error: $FILENAME isn't available at $MIRROR_URL/ yet." >&2
+      echo "       mirror/mirror.sh may not have synced this version yet - try again later," >&2
+      echo "       or use --installer if you already have it downloaded some other way." >&2
+      exit 1
+    fi
     mv "$INSTALLER_PATH.partial" "$INSTALLER_PATH"
   fi
 fi
