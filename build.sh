@@ -52,7 +52,7 @@ TYPE2_RUNTIME="$TOOLS_DIR/type2-runtime-$TYPE2_RUNTIME_VERSION-x86_64"
 
 electron_version_for() {
   case "$1" in
-    6.8.0-rc10|6.8.1-rc1|6.8.2-rc4|6.8.3-rc3) echo "35.7.5" ;;
+    6.8.0-rc10|6.8.1-rc1|6.8.2-rc4|6.8.3-rc3|6.8.4-rc1) echo "35.7.5" ;;
     *) echo "" ;;
   esac
 }
@@ -61,7 +61,7 @@ electron_version_for() {
 # electron_version_for() and patches/ whenever support for a new Darkglass
 # Suite version is added. Used to fetch that exact file from the mirror
 # (see MIRROR_URL below) without needing to ask it what it has.
-LATEST_VERSION="6.8.3-rc3"
+LATEST_VERSION="6.8.4-rc1"
 
 for cmd in curl 7z npx node gcc dos2unix; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "error: required command '$cmd' not found" >&2; exit 1; }
