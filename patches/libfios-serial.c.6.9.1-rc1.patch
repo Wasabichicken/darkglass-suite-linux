@@ -1,0 +1,75 @@
+--- a/node_modules/fios/src/libfios-serial.c
++++ b/node_modules/fios/src/libfios-serial.c
+@@ -15,7 +15,7 @@
+ #include <fcntl.h>
+ #include <termios.h>
+ #include <unistd.h>
+-#include <sys/ioctl.h>
++#include <poll.h>
+ #endif
+ 
+ typedef struct {
+@@ -361,7 +361,6 @@
+     if (fd >= 0)
+     {
+         s->fd = -1;
+-        ioctl(fd, TIOCSTI, "q");
+         close(fd);
+     }
+    #endif
+@@ -403,6 +402,27 @@
+             return false;
+         }
+ 
++        struct pollfd pfd = { .fd = s->fd, .events = POLLIN };
++        const int pr = poll(&pfd, 1, 100 /* ms */);
++
++        if (pr < 0)
++        {
++            if (errno == EINTR)
++                continue;
++
++            perror("_fios_read poll < 0");
++            return false;
++        }
++
++        if (pr == 0)
++            continue;
++
++        if (pfd.revents & (POLLERR | POLLHUP | POLLNVAL))
++        {
++            DEBUG_PRINT("_fios_read poll error/hangup");
++            return false;
++        }
++
+         const int r2 = read(s->fd, buffer + r, size - r);
+         DEBUG_PRINT("_fios_read got %d | %x bytes, total %d | %x bytes, size %u\n", r2, r2, r + r2, r + r2, size);
+ 
+@@ -459,6 +479,27 @@
+             return false;
+         }
+ 
++        struct pollfd pfd = { .fd = s->fd, .events = POLLOUT };
++        const int pr = poll(&pfd, 1, 100 /* ms */);
++
++        if (pr < 0)
++        {
++            if (errno == EINTR)
++                continue;
++
++            perror("_fios_write poll < 0");
++            return false;
++        }
++
++        if (pr == 0)
++            continue;
++
++        if (pfd.revents & (POLLERR | POLLHUP | POLLNVAL))
++        {
++            DEBUG_PRINT("_fios_write poll error/hangup");
++            return false;
++        }
++
+         const int w2 = write(s->fd, buffer + w, size - w);
+         DEBUG_PRINT("_fios_write got %d | %x bytes, total %d | %x bytes, size %u\n", w2, w2, w + w2, w + w2, size);
+ 
