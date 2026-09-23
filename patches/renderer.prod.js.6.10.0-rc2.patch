@@ -1,0 +1,61 @@
+--- a/renderer.prod.js.pretty
++++ b/renderer.prod.js.pretty
+@@ -167044,54 +167044,10 @@
+                           ],
+                         })
+                       : null,
+-                    (0, AU.jsx)(SX, { children: "Updates" }),
+-                    (0, AU.jsx)("div", { style: { height: 12 } }),
+-                    (0, AU.jsxs)("div", {
+-                      style: {
+-                        alignItems: "center",
+-                        justifyContent: "space-between",
+-                      },
+-                      children: [
+-                        (0, AU.jsx)(DX, {
+-                          children: "Always check for Suite update",
+-                        }),
+-                        (0, AU.jsx)(Xre, {
+-                          style: { width: 36, height: 20 },
+-                          onValueChange: ct,
+-                          value: re,
+-                        }),
+-                      ],
+-                    }),
+-                    Ee && he && ge
+-                      ? (0, AU.jsxs)(AU.Fragment, {
+-                          children: [
+-                            (0, AU.jsx)("div", { style: { height: 12 } }),
+-                            (0, AU.jsxs)("button", {
+-                              className: "button-active-opacity-25",
+-                              style: {
+-                                alignItems: "center",
+-                                justifyContent: "space-between",
+-                              },
+-                              onClick: ut,
+-                              children: [
+-                                (0, AU.jsx)(DX, {
+-                                  style: {
+-                                    color: K.TEXT_COLOR_BUTTON,
+-                                    textDecoration: "underline",
+-                                  },
+-                                  children: "New Suite update is available",
+-                                }),
+-                                (0, AU.jsx)(a_, {
+-                                  darkThemeIcon: Sne,
+-                                  lightThemeIcon: Qne,
+-                                  style: { width: 20, height: 20 },
+-                                  fill: K.TEXT_COLOR_BUTTON,
+-                                }),
+-                              ],
+-                            }),
+-                          ],
+-                        })
+-                      : null,
++                    // Patched: the "Updates" section (auto-update toggle and
++                    // "New Suite update is available" banner) was removed here
++                    // for the Linux native build - Darkglass's own updater is
++                    // Windows-only and permanently disabled in main.js.
+                     (0, AU.jsx)("div", { style: { height: "2rem" } }),
+                     (0, AU.jsx)(vX, {
+                       style: { fontWeight: "600" },
