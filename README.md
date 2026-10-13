@@ -65,18 +65,18 @@ $ ./build.sh
 ```
 
 By default, this fetches the newest supported version from the mirror
-(see above). If you'd rather use a specific installer you already have
-- an older version, or if the mirror is unreachable - point the script
+(see above). If you'd rather use a specific installer that you've
+already downloaded, or if the mirror is unavailable, point the script
 at it directly with `--installer`:
 
 ```sh
 $ ./build.sh --installer "cache/Darkglass Suite-6.8.0-rc10-x64.exe"
 ```
 
-This skips the download entirely; the version is still determined from
-the installer's filename and validated against `patches/` as usual, so
-this can't be used to sneak past the version check. An output path can
-still be given as an extra, final argument.
+This skips the download entirely, and instead tries to determine the
+version from the installer's filename, continuing to validate it
+against `patches/` as usual. An output path can still be given as an
+extra, final argument.
 
 ## Runtime requirements
 
